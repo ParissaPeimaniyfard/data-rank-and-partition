@@ -2,7 +2,7 @@
 import sqlite3
 
 conn = sqlite3.connect('data/ecommerce.sqlite')
-db = conn.cursor()
+dbb = conn.cursor()
 
 
 def order_rank_per_customer(db):
@@ -23,13 +23,15 @@ def order_cumulative_amount_per_customer(db):
 
     query = '''
     SELECT orders.OrderID, orders.CustomerID, orders.OrderDate,
-    SUM(orderdetails.Quantity * orderdetails.UnitPrice) OVER (
+    SUM(SUM(orderdetails.Quantity * orderdetails.UnitPrice)) OVER (
             PARTITION BY orders.CustomerID
             ORDER BY orders.OrderDate
         ) AS cumulative_amount
     FROM  Orders
     JOIN  OrderDetails
         ON  orders.OrderID = orderdetails.OrderID
+    GROUP BY orders.OrderID
+    ORDER BY orders.CustomerID
     '''
     db.execute(query)
     results = db.fetchall()
@@ -38,4 +40,4 @@ def order_cumulative_amount_per_customer(db):
 
 
 #print(order_rank_per_customer(db))
-print(order_cumulative_amount_per_customer(db))
+#print(order_cumulative_amount_per_customer(db))
